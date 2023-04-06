@@ -42,8 +42,36 @@
                     </div>
                   </div>
                 </div>
-                <div v-for="(notes, index) in savedNotes">
-                  {{ notes.note }}
+                <div v-for="(notes, index) in savedNotes" :key="index">
+                  <div class="group/item flex">
+                    <div class="relative flex min-w-0 items-center mr-6 py-2">
+                      <span class="relative inline-block flex-shrink-0">
+                        <img
+                          src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=3&w=1024&h=1024&q=80"
+                          alt=""
+                          class="h-8 w-8 rounded-full"
+                        />
+                      </span>
+                      <div class="ml-4 truncate">
+                        <p class="truncate text-sm font-medium text-gray-900">
+                          Jagadeesh Kuna
+                        </p>
+                        <p class="truncate text-sm text-gray-500">
+                          {{ notes.note }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="group-hover/item:visible invisible flex">
+                      <PencilIcon
+                        class="h-[17px] cursor-pointer mr-[6px] pt-1"
+                        @click="editNote(notes, index)"
+                      />
+                      <TrashIcon
+                        class="h-[17px] cursor-pointer mr-[6px] pt-1 tect-danger"
+                        @click="deleteNote(notes, index)"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div
                   class="flex flex-row items-center h-16 bg-white w-full px-4 bottom-0"
@@ -81,6 +109,9 @@
                     </button>
                   </div>
                 </div>
+                <TransitionRoot as="template" :show="showDeleteModal">
+                  <CollectionNotesDeleteModal @hideModal="deleteNotesData" />
+                </TransitionRoot>
               </form>
             </DialogPanel>
           </TransitionChild>
@@ -97,15 +128,42 @@ import {
   DialogPanel,
   DialogTitle,
   TransitionChild,
+  TransitionRoot,
 } from "@headlessui/vue";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
-const emit = defineEmits(["hideSidebar"]);
+import { PencilIcon, TrashIcon } from "@heroicons/vue/24/outline";
+
+const emit = defineEmits(["hideSidebar", "deleteNotes"]);
 const props = defineProps({
   // Declare props
   savedNotes: Array,
 });
 const textInput = ref("");
+const showDeleteModal = ref(false);
+const selectedNote = ref({});
+const selectedIndex = ref(0);
 const addNotes = () => {
-  console.log("hello", textInput.value);
+  let data = {
+    project_id: "12",
+    entity_id: "1",
+    note: `${textInput.value}`,
+    entity: "CONTACTS",
+  };
+  emit("saveNotes", data);
+  textInput.value = "";
+};
+const deleteNote = (note, index) => {
+  showDeleteModal.value = true;
+  selectedNote.value = note;
+  selectedIndex.value = index;
+};
+const deleteNotesData = (type) => {
+  showDeleteModal.value = false;
+  type
+    ? emit("deleteNotes", {
+        selectedNote: selectedNote.value,
+        selectedIndex: selectedIndex.value,
+      })
+    : "";
 };
 </script>

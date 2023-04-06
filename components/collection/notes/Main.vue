@@ -12,6 +12,9 @@
       <CollectionNotesList
         @hideSidebar="showNotes = false"
         :savedNotes="savedNotes"
+        :textInput="textInput"
+        @saveNotes="saveNotes"
+        @deleteNotes="deleteNotes"
       />
     </TransitionRoot>
   </div>
@@ -21,8 +24,32 @@ import { ref } from "vue";
 import { PlusIcon } from "@heroicons/vue/24/outline";
 import { TransitionRoot } from "@headlessui/vue";
 const showNotes = ref(false);
+const textInput = ref("");
 const { pending, data: savedNotes } = await useAuthLazyFetch(
-  "https://v1-orm-lib.mars.hipso.cc/notes/entity/CONTACTS/1?project_id=12&offset=0&limit=100&sort_column=id&sort_direction=desc"
+  "https://v1-orm-lib.mars.hipso.cc/notes/entity/CONTACTS/1?project_id=12&offset=0&limit=100&sort_column=id&sort_direction=asc"
 );
-console.log("savedNotes", savedNotes);
+const saveNotes = async (data: Object) => {
+  let options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization:
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1IjoiYzljMGM3MjkzMWI0NGZjOWE1NTc5ZWMyOTg4NzVlYzMiLCJkIjoiMTY4MDA2MiIsInIiOiJzYSIsInAiOiJmcmVlIiwiYSI6ImZpbmRlci5pbyIsImwiOiJ1czEiLCJleHAiOjE2ODMyNjczNzl9.3_zIDyeZ0ACxOF0VpywmxGpzdhUadzmvMRggb106s5E",
+    },
+    body: JSON.stringify(data),
+  };
+  const addNotesData = await useAuthLazyFetchPost(
+    "https://v1-orm-lib.mars.hipso.cc/notes/CONTACTS/1",
+    options
+  );
+  savedNotes.value.push(addNotesData.data.value);
+};
+const deleteNotes = async (data) => {
+  const response = await useAuthLazyFetchDelete(
+    `  https://v1-orm-lib.mars.hipso.cc/notes/${data.selectedNote.uid}`,
+    {}
+  );
+  if (response.data.value) savedNotes.value.splice(data.index, 1);
+};
 </script>
